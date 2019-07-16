@@ -1,0 +1,126 @@
+# my global config
+global:
+  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+       # - 10.32.112.75:9093
+       - 10.16.112.132:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+    - rules/business.rules.yml
+    - rules/node.rules.yml
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'prometheus'
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    static_configs:
+    - targets: ['localhost:9090']
+  - job_name: "node_prd"
+    static_configs:
+      - targets:
+         - 10.16.112.150:9100
+        labels:
+          instance: "los_10.16.112.150"
+      - targets:
+         - 10.16.112.79:9100
+        labels:
+          instance: "risk_10.16.112.79"
+      - targets:
+         - 10.16.112.3:9100
+        labels:
+          instance: "order_10.16.112.3"
+  - job_name: 'metrics_business_prd'
+    scrape_interval: 1s
+    static_configs:
+     - targets:
+        - 10.16.112.65:9025
+       labels:
+         instance: "risk_10.16.112.65"
+         metrics_url: /risk/monitor/metrics      
+    relabel_configs:
+      - source_labels: [metrics_url]
+        regex: (.*)
+        target_label: __metrics_path__
+        replacement: ${1}
+      - source_labels: [instance]
+        target_label: instance
+  - job_name: redis_prd
+    static_configs:
+      - targets: ['10.16.112.22:9121']
+        labels:
+          instance: redis_10.16.112.22
+          alias: alias_22
+          addr: redis_10.16.112.22
+      - targets: ['10.16.112.24:9121']
+        labels:
+          instance: redis_10.16.112.24
+          alias: alias_24
+          addr: redis_10.16.112.24
+      - targets: ['10.16.112.26:9121']
+        labels:
+          instance: redis_10.16.112.26
+          alias: alias_26
+          addr: redis_10.16.112.26
+      - targets: ['10.16.112.40:9121']
+        labels:
+          instance: redis_10.16.112.40
+          alias: alias_40
+          addr: redis_10.16.112.40
+      - targets: ['10.16.112.43:9121']
+        labels:
+          instance: redis_10.16.112.43
+          alias: alias_43
+          addr: redis_10.16.112.43
+      - targets: ['10.16.112.48:9121']
+        labels:
+          instance: redis_10.16.112.48
+          alias: alias_48
+          addr: redis_10.16.112.48
+  - job_name: 'monitor_clb_metrics'
+    scrape_interval: 5s
+    static_configs:
+     - targets:
+        - 10.16.112.133:9006
+       labels:
+         instance: recon_10.16.112.133
+         metrics_url: /recon/monitor/clb
+     - targets:
+        - 10.16.112.127:9022
+       labels:
+         instance: job_10.16.112.127
+         metrics_url: /job/monitor/clb
+     - targets:
+        - 10.16.112.137:9022
+       labels:
+         instance: job_10.16.112.137
+         metrics_url: /job/monitor/clb
+     - targets:
+        - 10.16.112.35:9005
+       labels:
+         instance: order_10.16.112.35
+         metrics_url: /order/monitor/clb
+     - targets:
+        - 10.16.112.3:9005
+       labels:
+         instance: order_10.16.112.3
+         metrics_url: /order/monitor/clb
+    relabel_configs:
+      - source_labels: [metrics_url]
+        regex: (.*)
+        target_label: __metrics_path__
+        replacement: ${1}
+      - source_labels: [instance]
+        target_label: instance
